@@ -30,6 +30,7 @@ import com.example.texttranslator.viewmodels.HomeViewModel
 import com.example.texttranslator.viewmodels.SpeechViewModel
 import com.example.texttranslator.R
 import com.example.texttranslator.screen.ConversationScreen
+import com.example.texttranslator.screen.ConversationScreenWithXMLFragment
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
 

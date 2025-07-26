@@ -82,6 +82,34 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+    fun translate() {
+        Log.d("transll", inputText+" "+ firstLang +" " +secondLang)
+
+        if (inputText.isEmpty()) return
+
+        isTranslating = true
+        errorMessage = ""
+
+        viewModelScope.launch {
+            try {
+                val result = translationRepository.translateText(inputText, secondLang,firstLang)
+                isTranslating = false
+
+                Log.d("transll", inputText + " " + firstLang + " " + secondLang)
+
+                result.onSuccess {
+                    translatedText = it
+                    _translated.value = it
+                }.onFailure {
+                    errorMessage = it.message ?: "Translation failed"
+                }
+            } catch (e: Exception) {
+                isTranslating = false
+                errorMessage = e.message ?: "Unexpected error"
+                Log.e("transll", "Exception during translation: ${e.message}", e)
+            }
+        }
+    }
     fun clearTranslation() {
         translatedText = ""
         _translated.value=""
