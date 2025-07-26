@@ -54,6 +54,7 @@ fun ConversationScreen() {
 
     val chatViewModel: ChatViewModel = hiltViewModel()
 
+    val context = LocalContext.current
 
 
 
@@ -115,6 +116,10 @@ fun ConversationScreen() {
 
                             chatViewModel.currentSpeaker="first"
                         },
+                            onSpeak = {
+                                Toast.makeText(context,"Speak "+"${chatViewModel.firsttext}", Toast.LENGTH_SHORT).show()
+
+                            },
                             homeViewModel,
                             chatViewModel
                 )
@@ -131,6 +136,9 @@ fun ConversationScreen() {
                         chatViewModel.currentSpeaker="second"
 
 
+                    },
+                    onSpeak = {
+                        Toast.makeText(context,"Speak "+"${chatViewModel.secondtext}", Toast.LENGTH_SHORT).show()
                     },
                     homeViewModel = homeViewModel,
                     chatViewModel1 = chatViewModel
@@ -166,6 +174,7 @@ fun PersonCard(
     chatViewModel: ChatViewModel,
     modifier: Modifier = Modifier,
     onMicClick: () -> Unit,
+    onSpeak:()-> Unit,
     homeViewModel: HomeViewModel,
     chatViewModel1: ChatViewModel
 
@@ -331,6 +340,10 @@ fun PersonCard(
                     Icon(
                         painter = painterResource(id = R.drawable.speak_blue),
                         contentDescription = "Speak",
+                        modifier = Modifier
+                            .clickable{
+                                onSpeak()
+                            },
                         tint = Color.Unspecified
                     )
                 }

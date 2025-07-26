@@ -69,7 +69,8 @@ fun HomeScreen(
     var selectedLanguage by remember { mutableStateOf("") }
 
     val context = LocalContext.current
-
+    viewModel.clearTranslation()
+    viewModel.inputText=""
     val originalText = viewModel.inputText
     val translatedText = viewModel.translatedText
     val sourceLang = viewModel.firstLang
