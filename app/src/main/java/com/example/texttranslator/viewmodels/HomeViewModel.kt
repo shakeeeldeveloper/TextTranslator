@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.texttranslator.model.HistoryEntity
 import com.example.texttranslator.repositories.TranslationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val translationRepository: TranslationRepository
+    private val translationRepository: TranslationRepository,
+    private val historyManager: HistoryManager
 
 ) : ViewModel(
 
@@ -54,7 +56,28 @@ class HomeViewModel @Inject constructor(
             secondLang = language
         }
     }
-    fun translateText() {
+
+
+    val historyList = mutableStateOf<List<HistoryEntity>>(emptyList())
+
+    fun addHistory(item: HistoryEntity) {
+        historyManager.saveHistoryItem(item)
+        historyList.value = historyManager.getHistoryList()
+    }
+    fun loadHistory() {
+        historyList.value = historyManager.getHistoryList()
+    }
+    fun clearHistory() {
+        historyManager.clearHistory()
+        historyList.value = emptyList()
+    }
+    fun deleteItem(item: HistoryEntity) {
+        historyManager.deleteHistoryItem(item)
+        loadHistory()
+    }
+
+
+    fun translateTextHome() {
         Log.d("transll", inputText+" "+ firstLang +" " +secondLang)
 
         if (inputText.isEmpty()) return
@@ -72,6 +95,15 @@ class HomeViewModel @Inject constructor(
                 result.onSuccess {
                     translatedText = it
                     _translated.value = it
+
+                    val history = HistoryEntity(
+                        sourceText = inputText,
+                        translatedText = it,
+                        sourceLangCode = firstLang,
+                        targetLangCode = secondLang
+                    )
+                    addHistory(history)
+
                 }.onFailure {
                     errorMessage = it.message ?: "Translation failed"
                 }

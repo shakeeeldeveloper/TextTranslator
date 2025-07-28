@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.texttranslator.viewmodels.HomeViewModel
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 
 import com.example.texttranslator.R
 import com.example.texttranslator.activities.LanguageActivity
@@ -60,7 +61,6 @@ fun HomeScreen(
 
 ) {
 
-
     when {
         isTranslating -> Text("Translating...")
         translatedText.isNotEmpty() -> Text("Translated: $translatedText")
@@ -69,8 +69,7 @@ fun HomeScreen(
     var selectedLanguage by remember { mutableStateOf("") }
 
     val context = LocalContext.current
-    viewModel.clearTranslation()
-    viewModel.inputText=""
+
     val originalText = viewModel.inputText
     val translatedText = viewModel.translatedText
     val sourceLang = viewModel.firstLang
@@ -126,13 +125,16 @@ fun HomeScreen(
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
-                Icon(
+                /*Icon(
                     painter = painterResource(id = R.drawable.setting_icon),
                     contentDescription = "Settings",
                     modifier = Modifier
                         .size(27.dp)
-                        .clickable { onSettingsClick() }
-                )
+                        .clickable {
+                            showSettings = true
+                            onSettingsClick()
+                        }
+                )*/
             }
 
             Spacer(modifier = Modifier.height(10.dp))

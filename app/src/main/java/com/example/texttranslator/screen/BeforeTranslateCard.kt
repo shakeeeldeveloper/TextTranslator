@@ -346,7 +346,7 @@ Log.d("lang",sourceLang+"   $targetLang")
             if (transBtnClick){
                 homeViewModel.inputText = speechViewModel.spokenText // assign inputText before translate
 
-                homeViewModel.translateText()
+                homeViewModel.translateTextHome()
                 transBtnClick=false
 
 

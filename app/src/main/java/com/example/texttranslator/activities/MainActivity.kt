@@ -31,6 +31,7 @@ import com.example.texttranslator.viewmodels.SpeechViewModel
 import com.example.texttranslator.R
 import com.example.texttranslator.screen.ConversationScreen
 import com.example.texttranslator.screen.ConversationScreenWithXMLFragment
+import com.example.texttranslator.screen.SettingScreen
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
 
@@ -172,13 +173,14 @@ fun OnlyHomeScreen(
 
             when (selectedScreen) {
                 "Home" -> HomeScreen(
-                    onSettingsClick = { /* Optional */ },
+                    onSettingsClick = {
+                    },
                     onSwitchToggle = { isSwitchChecked = it },
                     isSwitchChecked = isSwitchChecked,
                     onTransBtnClick = {
                         Log.d("sp_text", speechViewModel.spokenText)
                         viewModel.inputText = speechViewModel.spokenText
-                        viewModel.translateText()
+                        viewModel.translateTextHome()
                     },
                     onVoiceInputClick = {
                         startSpeechToText(viewModel.firstLang)
@@ -197,7 +199,7 @@ fun OnlyHomeScreen(
                 )
 
                 "Chat" -> ConversationScreen()
-                "Camera" -> CameraScreen()
+                "Setting" -> SettingScreen()
             }
 
         }
@@ -235,7 +237,7 @@ data class NavItem(
 val navItems = listOf(
     NavItem("Home", R.drawable.home_icon, R.drawable.home_icon_outline),
     NavItem("Chat", R.drawable.chat_icon_filled, R.drawable.chat_icon_outline),
-    NavItem("Camera", R.drawable.camera_icon_filled, R.drawable.camera_icon)
+    NavItem("Setting", R.drawable.setting_icon_filled, R.drawable.setting_icon)
 )
 
 @Composable

@@ -92,24 +92,43 @@ dependencies {
     implementation ("com.google.mlkit:translate:17.0.1")
     implementation ("com.google.mlkit:language-id:17.0.4")
     implementation ("com.google.mlkit:text-recognition:16.0.0")
+    implementation ("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 
 
-/*
-    // Room components
-    implementation ("androidx.room:room-runtime:2.6.1")
-
-    kapt("androidx.room:room-compiler:2.6.1") //
+    implementation ("com.google.code.gson:gson:2.10.1")
 
 
-    // Kotlin extensions and coroutines support
-    implementation ("androidx.room:room-ktx:2.6.1")
 
-// Lifecycle ViewModel & LiveData (already likely present)
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+    /*    implementation("com.google.dagger:hilt-android:2.48")
+        kapt("com.google.dagger:hilt-android-compiler:2.48")
 
-// Optional - for Java 8+ features (e.g., Instant, LocalDate)
-    implementation ("androidx.room:room-guava:2.6.1")*/
+        implementation(libs.room.runtime)
+        implementation(libs.room.ktx)
+        kapt(libs.room.compiler)
+
+
+        implementation ("androidx.room:room-runtime:2.6.1")
+        kapt ("androidx.room:room-compiler:2.6.1")
+        implementation ("androidx.room:room-ktx:2.6.1")
+        implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")*/
+
+
+    /*
+        // Room components
+        implementation ("androidx.room:room-runtime:2.6.1")
+
+        kapt("androidx.room:room-compiler:2.6.1") //
+
+
+        // Kotlin extensions and coroutines support
+        implementation ("androidx.room:room-ktx:2.6.1")
+
+    // Lifecycle ViewModel & LiveData (already likely present)
+        implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+        implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+
+    // Optional - for Java 8+ features (e.g., Instant, LocalDate)
+        implementation ("androidx.room:room-guava:2.6.1")*/
 
 
 

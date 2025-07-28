@@ -2,8 +2,10 @@ package com.example.texttranslator.screen
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -18,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -41,8 +44,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.texttranslator.R // Replace with your actual package name
 import com.example.texttranslator.activities.LanguageActivity
 import com.example.texttranslator.viewmodels.ChatViewModel
-import com.example.texttranslator.viewmodels.HomeViewModel
-import com.example.texttranslator.viewmodels.SpeechViewModel
+import com.example.texttranslator.viewmodels.ChatSpeechViewModel
+import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,12 +53,62 @@ import com.example.texttranslator.viewmodels.SpeechViewModel
 fun ConversationScreen() {
     val scrollState = rememberScrollState()
     var isRotated by remember { mutableStateOf(false) }
-    val homeViewModel: HomeViewModel = hiltViewModel()
 
     val chatViewModel: ChatViewModel = hiltViewModel()
 
     val context = LocalContext.current
 
+
+
+
+
+    // Text-to-Speech engine
+    val tts = remember {
+        TextToSpeech(context) { status ->
+            if (status != TextToSpeech.SUCCESS) {
+                Toast.makeText(context, "TTS init failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    LaunchedEffect(Unit) {
+        tts.language = Locale.US // or Locale("ur") for Urdu
+    }
+
+    // TTS Cleanup
+    DisposableEffect(Unit) {
+        onDispose {
+            tts.stop()
+            tts.shutdown()
+        }
+    }
+    fun speakText(text: String, langName: String) {
+        val langCode = getLanguageCodeFromName(langName)
+        val locale = Locale.forLanguageTag(langCode)
+        val availability = tts.isLanguageAvailable(locale)
+
+        if (availability >= TextToSpeech.LANG_AVAILABLE) {
+            tts.language = locale
+        } else {
+            Toast.makeText(context, "Language not supported: $langName. Using English", Toast.LENGTH_SHORT).show()
+            tts.language = Locale.ENGLISH
+        }
+
+        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+    }
+
+    // Speak function
+  /*  fun speakText(text: String, langName: String) {
+        val langCode = getLanguageCodeFromName(langName)
+        val locale = Locale.forLanguageTag(langCode)
+        val result = tts.setLanguage(locale)
+
+        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+            Toast.makeText(context, "Language not supported: $langName", Toast.LENGTH_SHORT).show()
+            tts.language = Locale.ENGLISH
+        }
+
+        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+    }*/
 
 
 
@@ -99,12 +152,14 @@ fun ConversationScreen() {
                 .graphicsLayer(rotationZ = if (isRotated) 180f else 0f)
         ) {
 
+
+
             Column {
 
 
 
                         PersonCard(
-                    language = homeViewModel.firstLang,
+                    language = chatViewModel.firstLang,
                     person = "first",
                     text=chatViewModel.firsttext,
                     chatViewModel=chatViewModel,
@@ -117,15 +172,15 @@ fun ConversationScreen() {
                             chatViewModel.currentSpeaker="first"
                         },
                             onSpeak = {
-                                Toast.makeText(context,"Speak "+"${chatViewModel.firsttext}", Toast.LENGTH_SHORT).show()
+                              //  Toast.makeText(context,"Speak "+"${chatViewModel.firsttext}", Toast.LENGTH_SHORT).show()
+                                tts.speak(chatViewModel.firsttext.value, TextToSpeech.QUEUE_FLUSH, null, null)
 
+                               // speakText(chatViewModel.firsttext.value,chatViewModel.firstLang)
                             },
-                            homeViewModel,
-                            chatViewModel
                 )
                 Spacer(modifier = Modifier.height(15.dp))
                 PersonCard(
-                    language = homeViewModel.secondLang,
+                    language = chatViewModel.secondLang,
                     person = "second",
                     text=chatViewModel.secondtext,
                     chatViewModel=chatViewModel,
@@ -138,10 +193,12 @@ fun ConversationScreen() {
 
                     },
                     onSpeak = {
-                        Toast.makeText(context,"Speak "+"${chatViewModel.secondtext}", Toast.LENGTH_SHORT).show()
+                        tts.speak(chatViewModel.secondtext.value, TextToSpeech.QUEUE_FLUSH, null, null)
+
+                        // Toast.makeText(context,"Speak "+"${chatViewModel.secondtext}", Toast.LENGTH_SHORT).show()
+                        //speakText(chatViewModel.secondtext.value,chatViewModel.secondLang)
+
                     },
-                    homeViewModel = homeViewModel,
-                    chatViewModel1 = chatViewModel
                 )
                 Spacer(modifier = Modifier.height(15.dp))
 
@@ -154,7 +211,7 @@ fun ConversationScreen() {
                 modifier = Modifier
                     .size(64.dp)
                     .align(Alignment.TopCenter)
-                    .offset(y = 292.dp)
+                    .offset(y = 296.dp)
                     .clickable {
                         isRotated = !isRotated
                     }
@@ -163,6 +220,24 @@ fun ConversationScreen() {
     }
 }
 
+fun getLanguageCodeFromName(name: String): String {
+    return when (name.lowercase()) {
+        "english" -> "en-US"
+        "urdu" -> "ur-PK"
+        "french" -> "fr-FR"
+        "spanish" -> "es-ES"
+        "german" -> "de-DE"
+        "chinese" -> "zh-CN"
+        "japanese" -> "ja-JP"
+        "korean" -> "ko-KR"
+        "arabic" -> "ar-SA"
+        "hindi" -> "hi-IN"
+        "italian" -> "it-IT"
+        "russian" -> "ru-RU"
+        "turkish" -> "tr-TR"
+        else -> "en-GB" // Default to English
+    }
+}
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
@@ -175,12 +250,10 @@ fun PersonCard(
     modifier: Modifier = Modifier,
     onMicClick: () -> Unit,
     onSpeak:()-> Unit,
-    homeViewModel: HomeViewModel,
-    chatViewModel1: ChatViewModel
 
 ) {
-   // val  homeViewModel: HomeViewModel = hiltViewModel()
-    val  speechViewModel: SpeechViewModel = hiltViewModel()
+   // val  chatViewModel: chatViewModel = hiltViewModel()
+    val  chatSpeechViewModel: ChatSpeechViewModel = hiltViewModel()
 
     var micClick by remember { mutableStateOf(false) }
     var progress by remember { mutableFloatStateOf(0f) }
@@ -195,33 +268,33 @@ fun PersonCard(
     val activity = context as Activity
 
     LaunchedEffect(Unit) {
-        homeViewModel.setLanguages(homeViewModel.firstLang, homeViewModel.secondLang)
+        chatViewModel.setLanguages(chatViewModel.firstLang, chatViewModel.secondLang)
     }
-    val translated by homeViewModel.translated.collectAsState()
+    val translated by chatViewModel.translated.collectAsState()
 
     LaunchedEffect(translated) {
         if (translated.isNotEmpty()) {
             Log.d("person",chatViewModel.currentSpeaker+"in trans")
 
             if (chatViewModel.currentSpeaker == "first") {
-                chatViewModel.setTexts(homeViewModel.inputText,translated)
+                chatViewModel.setTexts(chatViewModel.inputChatText,translated)
 
                // chatViewModel.firsttext = translated
             } else {
-                chatViewModel.setTexts(translated,homeViewModel.inputText)
+                chatViewModel.setTexts(translated,chatViewModel.inputChatText)
 
 
                // spokenText = translated
             }
 
-
+/*
             Toast.makeText(context,"Translated "+"$spokenText\n " +
                     "$translated\n " +
-                    "${homeViewModel.inputText}\n" +
-                    " ${homeViewModel.firstLang}\n " +
-                    "${homeViewModel.secondLang}\n", Toast.LENGTH_SHORT).show()
+                    "${chatViewModel.inputChatText}\n" +
+                    " ${chatViewModel.firstLang}\n " +
+                    "${chatViewModel.secondLang}\n", Toast.LENGTH_SHORT).show()*/
 
-            homeViewModel.clearTranslation()
+            chatViewModel.clearTranslation()
         }
     }
 
@@ -236,33 +309,32 @@ fun PersonCard(
 
                 //spokenText = spokenTextFromMic // ✅ set value here
                 text.value = spokenTextFromMic .toString()// ✅ set value here
-                speechViewModel.updateSpokenText(spokenTextFromMic)
-                homeViewModel.inputText = spokenTextFromMic
+                chatSpeechViewModel.updateSpokenText(spokenTextFromMic)
+                chatViewModel.inputChatText = spokenTextFromMic
                 lastSpeaker=spokenTextFromMic
                 //chatViewModel1.currentSpeaker=person
                 Log.d("person",chatViewModel.currentSpeaker+"in mic")
 
                 if(chatViewModel.currentSpeaker.equals("second"))
                 {
-                   // homeViewModel.swapLanguages()
-                    homeViewModel.translate()
+                    chatViewModel.translate()
 
                 }
                 else
-                homeViewModel.translateText()
+                chatViewModel.translateText()
 
-               /* Toast.makeText(context,homeViewModel.inputText
-                        +"${homeViewModel.firstLang}"
-                        +"${homeViewModel.secondLang}", Toast.LENGTH_SHORT).show()*/
+               /* Toast.makeText(context,chatViewModel.inputText
+                        +"${chatViewModel.firstLang}"
+                        +"${chatViewModel.secondLang}", Toast.LENGTH_SHORT).show()*/
             }
             else {
                 Log.d(
                     "ttttttttt",
-                    homeViewModel.inputText + "${homeViewModel.firstLang}" + "${homeViewModel.secondLang}"
+                    chatViewModel.inputChatText + "${chatViewModel.firstLang}" + "${chatViewModel.secondLang}"
                 )
-                Toast.makeText(context,"nulllll "+homeViewModel.inputText
-                        +"${homeViewModel.firstLang}"
-                        +"${homeViewModel.secondLang}", Toast.LENGTH_SHORT).show()
+               /* Toast.makeText(context,"nulllll "+chatViewModel.inputChatText
+                        +"${chatViewModel.firstLang}"
+                        +"${chatViewModel.secondLang}", Toast.LENGTH_SHORT).show()*/
             }
         }
     }
@@ -272,13 +344,13 @@ fun PersonCard(
     ) { isGranted ->
         if (isGranted) {
             if (chatViewModel.currentSpeaker.equals("first")) {
-                val intent = speechViewModel.getSpeechIntent(homeViewModel.firstLang)
+                val intent = chatSpeechViewModel.getSpeechIntent(chatViewModel.firstLang)
                 speechLauncher.launch(intent)
                 lastSpeaker="first"
                 //chatViewModel.currentSpeaker="first"
             }
             else{
-                val intent = speechViewModel.getSpeechIntent(homeViewModel.secondLang)
+                val intent = chatSpeechViewModel.getSpeechIntent(chatViewModel.secondLang)
                 speechLauncher.launch(intent)
                 lastSpeaker="second"
                 //chatViewModel.currentSpeaker="second"
@@ -296,15 +368,15 @@ fun PersonCard(
             val language = data?.getStringExtra("selected_language") ?: ""
 
 
-        /*    if (homeViewModel.currentLangType == "first") {
-                homeViewModel.setLanguages(language,homeViewModel.secondLang)
-            } else if (homeViewModel.currentLangType == "second") {
-                homeViewModel.setLanguages(homeViewModel.firstLang,language)
+        /*    if (chatViewModel.currentLangType == "first") {
+                chatViewModel.setLanguages(language,chatViewModel.secondLang)
+            } else if (chatViewModel.currentLangType == "second") {
+                chatViewModel.setLanguages(chatViewModel.firstLang,language)
 
             }*/
-            Log.d("cur",language+" ${homeViewModel.currentLangType}     ${homeViewModel.firstLang}      ${homeViewModel.secondLang}")
+            Log.d("cur",language+" ${chatViewModel.currentLangType}     ${chatViewModel.firstLang}      ${chatViewModel.secondLang}")
 
-            homeViewModel.updateSelectedLanguage(language)
+            chatViewModel.updateSelectedLanguage(language)
 
         }
     }
@@ -376,7 +448,7 @@ fun PersonCard(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFE7F3FF))
                     ) {
                         LanguageButton(language) {
-                            homeViewModel.currentLangType=person
+                            chatViewModel.currentLangType=person
                             val intent = Intent(context, LanguageActivity::class.java)
                             languageActivityLauncher.launch(intent)
                         }

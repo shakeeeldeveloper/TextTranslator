@@ -33,6 +33,10 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
+room-runtime = { group = "androidx.room", name = "room-runtime", version = "2.6.1-alpha01" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version = "2.6.1-alpha01" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version = "2.6.1-alpha01" }
+
 hilt-lib = { group = "com.google.dagger", name = "hilt-android", version.ref = "hiltVersion" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hiltVersion" }
 hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigation" }
