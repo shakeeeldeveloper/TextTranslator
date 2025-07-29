@@ -25,7 +25,15 @@ android {
 
     }
 
+
+    buildTypes{
+        release {
+            isMinifyEnabled=true
+            proguardFiles (getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
     buildFeatures {
+
         compose = true
     }
 
@@ -71,6 +79,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
+
 
     implementation("com.squareup:javapoet:1.13.0")
     implementation("io.coil-kt:coil-compose:2.4.0")
@@ -96,6 +106,9 @@ dependencies {
 
 
     implementation ("com.google.code.gson:gson:2.10.1")
+
+    implementation ("androidx.datastore:datastore-preferences:1.1.1")
+
 
 
 

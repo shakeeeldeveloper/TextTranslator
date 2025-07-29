@@ -1,6 +1,7 @@
 <resources>
-    <string name="app_name">TextTranslator</string>
+    <string name="app_name">Translate on Text Translator</string>
     <string name="title_activity_translation">TranslationActivity</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_translation1">TranslationActivity1</string>
 </resources>

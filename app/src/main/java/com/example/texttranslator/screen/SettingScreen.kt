@@ -1,5 +1,10 @@
 package com.example.texttranslator.screen
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.text.font.FontWeight
 
 
@@ -18,17 +23,56 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.texttranslator.R
-import com.example.texttranslator.viewmodels.HistoryViewModel
 import com.example.texttranslator.viewmodels.HomeViewModel
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.runtime.*
+import androidx.activity.OnBackPressedCallback
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.activity.compose.LocalActivity
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.LifecycleOwner
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingScreen() {
-    var showHistory by remember { mutableStateOf(false) }
+fun SettingScreen(
+    onOpenHistory: () -> Unit
+) {
+    var showPrivacyPolicy by remember { mutableStateOf(false) }
+    var showRateUs by remember { mutableStateOf(false) }
+    var showShareApp by remember { mutableStateOf(false) }
 
-    val viewModel: HomeViewModel = hiltViewModel() // ⬅️ this line adds your HomeViewMode
+    //val activity = LocalActivity.current
+    val context = LocalContext.current
 
-    if (showHistory) {
+    val activity = context as? Activity
+    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
+    val dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+
+    DisposableEffect(lifecycleOwner) {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // 👇 Move the app to background (home screen)
+                activity?.moveTaskToBack(true)
+            }
+        }
+
+        dispatcher?.addCallback(lifecycleOwner, callback)
+
+        onDispose {
+            callback.remove()
+        }
+    }
+    if (showPrivacyPolicy){
+        LaunchedEffect(Unit) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.freeprivacypolicy.com/live/841a0503-8798-444c-83da-4c50ecac913d"))
+            context.startActivity(intent)
+        }
+    }
+    // val viewModel: HomeViewModel = hiltViewModel()
+
+/*    if (showHistory) {
         viewModel.loadHistory()
         HistoryScreen(
             historyItems = viewModel.historyList.value,
@@ -36,8 +80,8 @@ fun SettingScreen() {
             onClear = { viewModel.clearHistory() },
             onDelete = { viewModel.deleteItem(it) }
         )
-          }
-    else {
+    }
+    else {*/
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
                 title = {
@@ -53,12 +97,12 @@ fun SettingScreen() {
                                 fontWeight = FontWeight.Bold
                             )
                         )
-                        Icon(
+                       /* Icon(
                             painter = painterResource(id = R.drawable.setting_icon_black),
                             contentDescription = "Settings",
                             modifier = Modifier.padding(end = 12.dp),
                             tint = Color.Unspecified
-                        )
+                        )*/
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
@@ -72,27 +116,38 @@ fun SettingScreen() {
                 SettingItem(
                     title = "History",
                     iconStart = R.drawable.history_icon,
-                    onClick = { showHistory = true }
+                    onClick = { /*showHistory = true*/
+                        onOpenHistory()
+                    }
                 )
                 SettingItem(
                     title = "Rate Us",
                     iconStart = R.drawable.rate_us,
-                    onClick = { showHistory = true }
+                    onClick = {
+
+                    }
+                )
+                SettingItem(
+                    title = "Privacy Policy",
+                    iconStart = R.drawable.rate_us,
+                    onClick = {
+                        showPrivacyPolicy=true
+                    }
                 )
                 SettingItem(
                     title = "Share App",
                     iconStart = R.drawable.share_icon,
-                    onClick = { showHistory = true }
+                    onClick = {  }
                 )
                 SettingItem(
                     title = "About Us",
                     iconStart = R.drawable.about_us,
-                    onClick = { showHistory = true }
+                    onClick = {  }
                 )
 
             }
         }
-    }
+    //}
 }
 
 @Composable

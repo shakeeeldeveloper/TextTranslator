@@ -30,13 +30,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 
 import com.example.texttranslator.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 @Composable
@@ -57,8 +63,10 @@ fun TranslationCardUI(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
+    var shareIcon by remember { mutableStateOf(true) }
+    val coroutineScope = rememberCoroutineScope()
 
-    // ✅ Remember TextToSpeech instance
+
     val tts = remember {
         TextToSpeech(context) { status ->
             if (status != TextToSpeech.SUCCESS) {
@@ -67,12 +75,10 @@ fun TranslationCardUI(
         }
     }
 
-    // ✅ Set language once when composable is launched
     LaunchedEffect(Unit) {
-        tts.language = Locale.US // or Locale("ur") for Urdu
+        tts.language = Locale.US
     }
 
-    // ✅ Shutdown TTS when Composable is removed
     DisposableEffect(Unit) {
         onDispose {
             tts.stop()
@@ -167,8 +173,6 @@ fun TranslationCardUI(
 
                                     clipboardManager.setText(AnnotatedString(originalText))
                                     Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
-
-
                                     onCopyOriginal()
                                 }
                         )
@@ -269,14 +273,23 @@ fun TranslationCardUI(
                         modifier = Modifier
                             .padding(end = 16.dp)
                             .size(width = 24.dp, height = 20.dp)
-                            .clickable {
-                                val shareIntent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    putExtra(Intent.EXTRA_TEXT, translatedText)
-                                    type = "text/plain"
-                                }
-                                context.startActivity(Intent.createChooser(shareIntent, "Share via"))
+                            .clickable(
+                                enabled = shareIcon
+                            ) {
 
+                                shareIcon=false
+                                // Launch coroutine to handle delay
+                                coroutineScope.launch {
+                                    val shareIntent = Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        putExtra(Intent.EXTRA_TEXT, translatedText)
+                                        type = "text/plain"
+                                    }
+                                    context.startActivity(Intent.createChooser(shareIntent, "Share via"))
+
+                                    delay(4000) // Delay 2 seconds
+                                    shareIcon = true
+                                }
                             }
                     )
                     Icon(
@@ -295,8 +308,6 @@ fun TranslationCardUI(
                             .padding(end = 16.dp)
                             .clickable {
                                 tts.speak(translatedText, TextToSpeech.QUEUE_FLUSH, null, null)
-
-                               // onBookmarkTranslated()
                             }
                     )
                 }

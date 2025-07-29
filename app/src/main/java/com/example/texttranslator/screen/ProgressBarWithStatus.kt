@@ -8,31 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@Composable
-fun ProgressBarWithStatus(progress: Float) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Progress Percentage Text
-        Text(
-            text = "${(progress * 100).toInt()}%",
-            fontSize = 20.sp
-        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Linear Progress Bar
-        LinearProgressIndicator(
-            progress = progress,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(12.dp)
-        )
-    }
-}
 @Composable
 fun ProgressScreen(
     progress: Float,

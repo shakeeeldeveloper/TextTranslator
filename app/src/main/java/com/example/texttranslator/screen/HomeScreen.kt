@@ -1,6 +1,6 @@
 package com.example.texttranslator.screen
 
-import android.R.attr.text
+import android.R.attr.enabled
 import android.app.Activity
 import android.content.Intent
 import android.util.Log
@@ -36,11 +36,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.texttranslator.viewmodels.HomeViewModel
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 
 import com.example.texttranslator.R
 import com.example.texttranslator.activities.LanguageActivity
 import com.example.texttranslator.activities.TranslationActivity
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -63,12 +70,19 @@ fun HomeScreen(
 
     when {
         isTranslating -> Text("Translating...")
-        translatedText.isNotEmpty() -> Text("Translated: $translatedText")
-        errorMessage.isNotEmpty() -> Text("Error: $errorMessage")
+      /*  translatedText.isNotEmpty() ->    //Text("Translated: $translatedText")
+        errorMessage.isNotEmpty() -> //Text("Error: $errorMessage")*/
     }
-    var selectedLanguage by remember { mutableStateOf("") }
 
     val context = LocalContext.current
+
+    val focusManager = LocalFocusManager.current
+    val textFieldFocusRequester = remember { FocusRequester() }
+
+    var btnTrans by remember { mutableStateOf(true) }
+    val coroutineScope = rememberCoroutineScope()
+
+
 
     val originalText = viewModel.inputText
     val translatedText = viewModel.translatedText
@@ -76,6 +90,10 @@ fun HomeScreen(
     val targetLang = viewModel.secondLang
     LaunchedEffect(translatedText) {
         if (translatedText.isNotEmpty()) {
+
+            onTextChange("")
+
+            focusManager.clearFocus()
 
             Log.d("lang",sourceLang+"   in home $targetLang    $originalText     $translatedText")
 
@@ -111,7 +129,7 @@ fun HomeScreen(
                 .padding(innerPadding) // <-- apply innerPadding
                 .padding(16.dp)
         ) {
-            // Header with Title and Settings Icon
+
             Row(
                 modifier = Modifier
                     .padding(top = 10.dp)
@@ -178,10 +196,7 @@ fun HomeScreen(
                         )
                     }
 
-                    /*CustomSwitch(
-                        isChecked = isSwitchChecked,
-                        onCheckedChange = onSwitchToggle
-                    )*/
+
                 }
 
 
@@ -227,8 +242,7 @@ fun HomeScreen(
                             modifier = Modifier
                                 .size(20.dp)
                                 .clickable {
-                                    // Swap logic
-                                    viewModel.swapLanguages() // optional: if you need external handling
+                                    viewModel.swapLanguages()
                                 }
                         )
 
@@ -245,7 +259,8 @@ fun HomeScreen(
                         onValueChange = onTextChange,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 10.dp)
+                            .focusRequester(textFieldFocusRequester),
                         placeholder = { Text("Type your text here") },
                         maxLines = 5,
                         colors = TextFieldDefaults.colors(
@@ -272,13 +287,32 @@ fun HomeScreen(
                         modifier = Modifier
 
                             .align(Alignment.End)
-                            .clickable {
+                            .clickable(
+                                enabled = btnTrans, // ✅ Proper usage
+                                onClick = {
+                                    btnTrans=false
+
+
+                                    if (textInput.isNotEmpty()) {
+                                        onTransBtnClick()
+                                    } else {
+                                        onVoiceInputClick()
+                                    }
+                                    coroutineScope.launch {
+                                        delay(8000)
+                                        btnTrans=true
+                                    }
+                                }
+                            )
+                           /* .clickable {
+                                enabled = !isTranslating, // Disable click when translating
+
                                 if (textInput.isNotEmpty()) {
                                     onTransBtnClick()
                                 } else {
                                     onVoiceInputClick()
                                 }
-                            }
+                            }*/
                     )
 
                 }
@@ -292,14 +326,14 @@ fun HomeScreen(
                     color = Color.Gray,
                     fontWeight = FontWeight.Bold
                 )
-                translatedText.isNotEmpty() -> Text(
+               /* translatedText.isNotEmpty() -> Text(
 
 
 
                     text = "Translated: $translatedText",
                     color = Color.Blue,
                     fontWeight = FontWeight.Bold
-                )
+                )*/
                 errorMessage.isNotEmpty() -> Text(
                     text = "Error: $errorMessage",
                     color = Color.Red,
@@ -311,265 +345,6 @@ fun HomeScreen(
     }
 }
 
-
-
-/*@Composable
-fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel(),
-    onSettingsClick: () -> Unit = {},
-    onSwitchToggle: (Boolean) -> Unit = {},
-    isSwitchChecked: Boolean = false,
-    onTransBtnClick: () -> Unit = {},
-    onLangSwitch: () -> Unit = {},
-    textInput: String = "",
-    onTextChange: (String) -> Unit = {},
-    onLangSelected:  (String) -> Unit = {}
-
-) {
-
-
-
-    var selectedLanguage by remember { mutableStateOf("") }
-    var firstLang by remember { mutableStateOf("English") }
-    var secondLang by remember { mutableStateOf("Urdu") }
-    var currentLangType by remember { mutableStateOf("") }
-    val context = LocalContext.current
-
-
-
-    val languageActivityLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val data = result.data
-            val language = data?.getStringExtra("selected_language") ?: ""
-
-            if (currentLangType == "first") {
-                firstLang = language
-            } else if (currentLangType == "second") {
-                secondLang = language
-            }
-        }
-    }
-
-    Scaffold { innerPadding ->
-
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding) // <-- apply innerPadding
-                .padding(16.dp)
-        ) {
-            // Header with Title and Settings Icon
-            Row(
-                modifier = Modifier
-                    .padding(top = 10.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Translator",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.setting_icon),
-                    contentDescription = "Settings",
-                    modifier = Modifier
-                        .size(27.dp)
-                        .clickable { onSettingsClick() }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Quick Translator Card
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF80BDFF)
-                ),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(20.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .wrapContentHeight()
-                            .weight(1f)
-                    ) {
-                        Text(
-                            text = "Quick Translator",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Using Floating icon Translate chat, Text, picture, full screen text, video/game sub-titles and more.",
-                            fontSize = 13.sp,
-                            color = Color.White
-                        )
-                    }
-
-                    CustomSwitch(
-                        isChecked = isSwitchChecked,
-                        onCheckedChange = onSwitchToggle
-                    )
-                }
-
-                */
-/* Row (
-                     modifier= Modifier
-                     .fillMaxWidth()
-                 ) {
-
-
-                     Column(
-                         modifier = Modifier
-                             .wrapContentWidth()
-                             .padding(16.dp),
-                         verticalArrangement = Arrangement.SpaceBetween
-                     ) {
-                         Text(
-                             text = "Quick Translator",
-                             fontSize = 16.sp,
-                             fontWeight = FontWeight.Bold,
-                             color = Color.White
-                         )
-
-                         Text(
-                             text = "Using Floating icon Translate chat, Text, picture, full screen text, video/game sub-titles and more.",
-                             fontSize = 13.sp,
-                             color = Color.White
-                         )
-
-
-                     }
-                     Column (
-                         modifier = Modifier
-                             .padding(end = 16.dp)
-                     ){
-                         CustomSwitch(
-                             isChecked = isSwitchChecked,
-                             onCheckedChange = onSwitchToggle
-                         )
-                     }
-
-                 }*/
-/*
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            // Main Card for Translator Functionality
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(329.dp)
-
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-
-                    // Language Selection Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        LanguageButton(firstLang) {
-                            currentLangType = "first"
-                            val intent = Intent(context, LanguageActivity::class.java)
-                            languageActivityLauncher.launch(intent)
-                        }
-
-                        Icon(
-                            painter = painterResource(id = R.drawable.rotate_icon),
-                            contentDescription = "Switch Language",
-                            modifier = Modifier
-                                .size(20.dp)
-                                .clickable {
-                                    // Swap logic
-                                    val temp = firstLang
-                                    firstLang = secondLang
-                                    secondLang = temp
-
-                                    onLangSwitch() // optional: if you need external handling
-                                }
-                        )
-
-                        LanguageButton(secondLang) {
-                            currentLangType = "second"
-                            val intent = Intent(context, LanguageActivity::class.java)
-                            languageActivityLauncher.launch(intent)
-                        }
-                    }
-
-
-                    TextField(
-                        value = textInput,
-                        onValueChange = onTextChange,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                        placeholder = { Text("Type your text here") },
-                        maxLines = 5,
-                        colors = TextFieldDefaults.colors(
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black,
-                            unfocusedContainerColor = Color.White,
-
-                            focusedIndicatorColor = Color.White,
-                            unfocusedIndicatorColor = Color.White,
-                            disabledIndicatorColor = Color.White,
-                            cursorColor = Color.Black
-                        )
-                    )
-
-
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Image(
-                        painter = painterResource(
-                            id = if (textInput.isNotEmpty()) R.drawable.trans_svg else R.drawable.voice_icon
-                        ),
-                        contentDescription = if (textInput.isNotEmpty()) "Translate" else "Voice Input",
-                        modifier = Modifier
-
-                            .align(Alignment.End)
-                            .clickable { onTransBtnClick() }
-                    )
-
-                }
-            }
-        }
-    }
-}*/
 
 @Composable
 fun CustomSwitch(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {

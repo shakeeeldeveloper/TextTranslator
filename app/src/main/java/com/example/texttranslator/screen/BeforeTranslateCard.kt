@@ -80,26 +80,23 @@ fun BeforeTranslateCard(
         speechViewModel.updateSpokenText(originalText)
     }
 
- /*   homeViewModel.inputText=originalText
-    speechViewModel.updateSpokenText(originalText)*/
+
     var isText by remember { mutableStateOf(true) }
+    var btnTrans by remember { mutableStateOf(true) }
     var crossClick by remember { mutableStateOf(false) }
     var micClick by remember { mutableStateOf(false) }
     var transBtnClick by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val activity = context as Activity
 
 
 Log.d("lang",sourceLang+"   $targetLang")
 
-    var firstLang = sourceLang
-    var secondLang = targetLang
+
 
     LaunchedEffect(Unit) {
         homeViewModel.setLanguages(sourceLang, targetLang)
     }
 
-   // homeViewModel.setLanguages(sourceLang,targetLang)
 
     val speechLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -126,16 +123,7 @@ Log.d("lang",sourceLang+"   $targetLang")
     }
 
 
-/*    var spokenText by remember { mutableStateOf("") }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) {
-            startSpeechRecognition(context) { result ->
-                spokenText = result
-            }
-        } else {
-            Toast.makeText(context, "Microphone permission required", Toast.LENGTH_SHORT).show()
-        }
-    }*/
+
 
     val languageActivityLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -149,7 +137,6 @@ Log.d("lang",sourceLang+"   $targetLang")
             if (homeViewModel.currentLangType == "first") {
               homeViewModel.setLanguages(language,homeViewModel.secondLang)
             } else if (homeViewModel.currentLangType == "second") {
-               // Log.d("cur",language+" true "+currentLangType)
                 homeViewModel.setLanguages(homeViewModel.firstLang,language)
 
 
@@ -198,8 +185,7 @@ Log.d("lang",sourceLang+"   $targetLang")
 
     Log.d("lang",homeViewModel.firstLang+" home   ${homeViewModel.secondLang}")
 
-   /*  firstLang = homeViewModel.firstLang
-     secondLang = homeViewModel.secondLang*/
+
 
 
 
@@ -240,8 +226,7 @@ Log.d("lang",sourceLang+"   $targetLang")
                     .clickable {
                         Log.d("cur","swipe")
 
-                        // Swap logic
-                        homeViewModel.swapLanguages() // optional: if you need external handling
+                        homeViewModel.swapLanguages()
                     }
             )
 
@@ -289,11 +274,7 @@ Log.d("lang",sourceLang+"   $targetLang")
                                 crossClick=true
                                 }
                     )
-                   /* if (crossClick){
-                        homeViewModel.inputText =""
-                        isText = false
-                        speechViewModel.updateSpokenText("")
-                    }*/
+
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -332,13 +313,16 @@ Log.d("lang",sourceLang+"   $targetLang")
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(15.dp)
-                    .clickable {
+                    .clickable(
+                        enabled = btnTrans
+                    ) {
                         if (homeViewModel.inputText.isBlank()) {
                           //  launcher.launch(Manifest.permission.RECORD_AUDIO)
 
                             micClick = true
                         } else {
                             transBtnClick = true
+                            btnTrans=false
                         }
                     }
 
@@ -354,10 +338,7 @@ Log.d("lang",sourceLang+"   $targetLang")
 
             }
 
-            /*if (micClick) {
-                startSpeechRecognition(firstLang) // 👈 invoke here
 
-            }*/
 
         }
     }
@@ -365,67 +346,6 @@ Log.d("lang",sourceLang+"   $targetLang")
 
 
 }
-/*
-fun startSpeechRecognition(context: Context, onResult: (String) -> Unit) {
-    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-        putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-        putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak something...")
-    }
 
-    val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
-
-    recognizer.setRecognitionListener(object : RecognitionListener {
-        override fun onResults(results: Bundle?) {
-            val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-            if (!matches.isNullOrEmpty()) {
-                onResult(matches[0])
-            }
-        }
-
-        override fun onReadyForSpeech(params: Bundle?) {}
-        override fun onBeginningOfSpeech() {}
-        override fun onRmsChanged(rmsdB: Float) {}
-        override fun onBufferReceived(buffer: ByteArray?) {}
-        override fun onEndOfSpeech() {}
-        override fun onError(error: Int) {
-            val message = when (error) {
-                SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
-                SpeechRecognizer.ERROR_CLIENT -> "Client side error"
-                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
-                SpeechRecognizer.ERROR_NETWORK -> "Network error"
-                SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
-                SpeechRecognizer.ERROR_NO_MATCH -> "No match found"
-                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Recognizer is busy"
-                SpeechRecognizer.ERROR_SERVER -> "Server error"
-                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
-                else -> "Unknown error code: $error"
-            }
-            Toast.makeText(context, "Speech error: $message", Toast.LENGTH_LONG).show()
-            Log.e("SpeechRecognizer", "Error code: $error ($message)")
-        }
-
-
-
-        override fun onPartialResults(partialResults: Bundle?) {}
-        override fun onEvent(eventType: Int, params: Bundle?) {}
-    })
-
-    recognizer.startListening(intent)
-}
-*/
-
-
-
-/*@Preview(showBackground = true)
-@Composable
-fun BeforeTranslateCardPreview() {
-    BeforeTranslateCard(
-        originalText = "Hello, how are you?",
-        translatedText = "سلام، آپ کیسے ہیں؟",
-        sourceLang = "English",
-        targetLang = "Urdu"
-    )
-}*/
 
 

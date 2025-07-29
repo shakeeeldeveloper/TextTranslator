@@ -8,6 +8,8 @@ import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -43,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.texttranslator.R // Replace with your actual package name
 import com.example.texttranslator.activities.LanguageActivity
+import com.example.texttranslator.activities.Screen
 import com.example.texttranslator.viewmodels.ChatViewModel
 import com.example.texttranslator.viewmodels.ChatSpeechViewModel
 import java.util.Locale
@@ -50,19 +53,26 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConversationScreen() {
+fun ConversationScreen(
+   onOpenHistory: () -> Unit
+   // onOpenHistory: (Screen.History) -> Unit
+
+) {
     val scrollState = rememberScrollState()
     var isRotated by remember { mutableStateOf(false) }
 
     val chatViewModel: ChatViewModel = hiltViewModel()
 
     val context = LocalContext.current
+    val activity = LocalActivity.current
+
+    BackHandler {
+        activity?.finishAffinity() // or activity.moveTaskToBack(true)
+    }
 
 
 
 
-
-    // Text-to-Speech engine
     val tts = remember {
         TextToSpeech(context) { status ->
             if (status != TextToSpeech.SUCCESS) {
@@ -74,7 +84,6 @@ fun ConversationScreen() {
         tts.language = Locale.US // or Locale("ur") for Urdu
     }
 
-    // TTS Cleanup
     DisposableEffect(Unit) {
         onDispose {
             tts.stop()
@@ -96,19 +105,7 @@ fun ConversationScreen() {
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 
-    // Speak function
-  /*  fun speakText(text: String, langName: String) {
-        val langCode = getLanguageCodeFromName(langName)
-        val locale = Locale.forLanguageTag(langCode)
-        val result = tts.setLanguage(locale)
 
-        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-            Toast.makeText(context, "Language not supported: $langName", Toast.LENGTH_SHORT).show()
-            tts.language = Locale.ENGLISH
-        }
-
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-    }*/
 
 
 
@@ -135,9 +132,10 @@ fun ConversationScreen() {
                     )
                     Icon(
                         painter = painterResource(id = R.drawable.con_icon),
-                        contentDescription = "Settings",
+                        contentDescription = "History",
                         modifier = Modifier
-                            .padding(end = 12.dp),
+                            .padding(end = 12.dp)
+                            .clickable { onOpenHistory() },
                         tint = Color.Unspecified
                     )
                 }
@@ -172,7 +170,6 @@ fun ConversationScreen() {
                             chatViewModel.currentSpeaker="first"
                         },
                             onSpeak = {
-                              //  Toast.makeText(context,"Speak "+"${chatViewModel.firsttext}", Toast.LENGTH_SHORT).show()
                                 tts.speak(chatViewModel.firsttext.value, TextToSpeech.QUEUE_FLUSH, null, null)
 
                                // speakText(chatViewModel.firsttext.value,chatViewModel.firstLang)
@@ -195,7 +192,6 @@ fun ConversationScreen() {
                     onSpeak = {
                         tts.speak(chatViewModel.secondtext.value, TextToSpeech.QUEUE_FLUSH, null, null)
 
-                        // Toast.makeText(context,"Speak "+"${chatViewModel.secondtext}", Toast.LENGTH_SHORT).show()
                         //speakText(chatViewModel.secondtext.value,chatViewModel.secondLang)
 
                     },
@@ -252,20 +248,14 @@ fun PersonCard(
     onSpeak:()-> Unit,
 
 ) {
-   // val  chatViewModel: chatViewModel = hiltViewModel()
     val  chatSpeechViewModel: ChatSpeechViewModel = hiltViewModel()
 
     var micClick by remember { mutableStateOf(false) }
-    var progress by remember { mutableFloatStateOf(0f) }
 
-    var spokenText by remember { mutableStateOf("") } // Holds displayed text
     var lastSpeaker by remember { mutableStateOf("first") } // or "second"
 
-    var firstTranslated by remember { mutableStateOf("") }
-    var secondTranslated by remember { mutableStateOf("") }
 
     val context = LocalContext.current
-    val activity = context as Activity
 
     LaunchedEffect(Unit) {
         chatViewModel.setLanguages(chatViewModel.firstLang, chatViewModel.secondLang)
@@ -279,12 +269,10 @@ fun PersonCard(
             if (chatViewModel.currentSpeaker == "first") {
                 chatViewModel.setTexts(chatViewModel.inputChatText,translated)
 
-               // chatViewModel.firsttext = translated
             } else {
                 chatViewModel.setTexts(translated,chatViewModel.inputChatText)
 
 
-               // spokenText = translated
             }
 
 /*
@@ -312,7 +300,6 @@ fun PersonCard(
                 chatSpeechViewModel.updateSpokenText(spokenTextFromMic)
                 chatViewModel.inputChatText = spokenTextFromMic
                 lastSpeaker=spokenTextFromMic
-                //chatViewModel1.currentSpeaker=person
                 Log.d("person",chatViewModel.currentSpeaker+"in mic")
 
                 if(chatViewModel.currentSpeaker.equals("second"))
@@ -332,9 +319,7 @@ fun PersonCard(
                     "ttttttttt",
                     chatViewModel.inputChatText + "${chatViewModel.firstLang}" + "${chatViewModel.secondLang}"
                 )
-               /* Toast.makeText(context,"nulllll "+chatViewModel.inputChatText
-                        +"${chatViewModel.firstLang}"
-                        +"${chatViewModel.secondLang}", Toast.LENGTH_SHORT).show()*/
+
             }
         }
     }
@@ -347,13 +332,11 @@ fun PersonCard(
                 val intent = chatSpeechViewModel.getSpeechIntent(chatViewModel.firstLang)
                 speechLauncher.launch(intent)
                 lastSpeaker="first"
-                //chatViewModel.currentSpeaker="first"
             }
             else{
                 val intent = chatSpeechViewModel.getSpeechIntent(chatViewModel.secondLang)
                 speechLauncher.launch(intent)
                 lastSpeaker="second"
-                //chatViewModel.currentSpeaker="second"
             }
         } else {
             Toast.makeText(context, "Microphone permission is required", Toast.LENGTH_SHORT).show()
@@ -368,12 +351,6 @@ fun PersonCard(
             val language = data?.getStringExtra("selected_language") ?: ""
 
 
-        /*    if (chatViewModel.currentLangType == "first") {
-                chatViewModel.setLanguages(language,chatViewModel.secondLang)
-            } else if (chatViewModel.currentLangType == "second") {
-                chatViewModel.setLanguages(chatViewModel.firstLang,language)
-
-            }*/
             Log.d("cur",language+" ${chatViewModel.currentLangType}     ${chatViewModel.firstLang}      ${chatViewModel.secondLang}")
 
             chatViewModel.updateSelectedLanguage(language)

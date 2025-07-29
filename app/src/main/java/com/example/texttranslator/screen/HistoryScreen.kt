@@ -20,45 +20,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import com.example.texttranslator.model.HistoryEntity
-import com.example.texttranslator.viewmodels.HistoryViewModel
-import com.example.texttranslator.R
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
-/*@Composable
-fun HistoryScreen(
-    historyItems: List<HistoryEntity>,
-    onBack: () -> Unit,
-    onClear: () -> Unit
-) {
-    Column(Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("History", Modifier.padding(16.dp))
-            Row {
-                Text("Clear", Modifier
-                    .clickable { onClear() }
-                    .padding(16.dp))
-                Text("Back", Modifier
-                    .clickable { onBack() }
-                    .padding(16.dp))
-            }
-        }
-
-        LazyColumn {
-            items(historyItems) { item ->
-                HistoryCard(item)
-            }
-        }
-    }
-}*/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
@@ -92,15 +59,7 @@ fun HistoryScreen(
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
             modifier = Modifier.shadow(4.dp)
         )
-     /*   Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("History", Modifier.padding(16.dp))
-            Row {
 
-                Text("Back", Modifier
-                    .clickable { onBack() }
-                    .padding(16.dp))
-            }
-        }*/
         Text("Clear All", Modifier
 
             .clickable { onClear() }
@@ -134,32 +93,14 @@ fun HistoryCard(item: HistoryEntity, onDelete: (HistoryEntity) -> Unit) {
                 IconButton(onClick = { onDelete(item) }) {
                     Icon(Icons.Default.Delete, contentDescription = null,tint = Color.Red)
 
-                   /* Icon(
-                        painter = painterResource(id = R.drawable.ic_delete), // or use Icons.Default.Delete
-                        contentDescription = "Delete",
-                        tint = Color.Red
-                    )*/
+
                 }
             }
         }
     }
 }
 
-/*
-@Composable
-fun HistoryCard(item: HistoryEntity) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-    ) {
-        Column(Modifier.padding(12.dp)) {
-            Text("From (${item.sourceLangCode}): ${item.sourceText}")
-            Text("To (${item.targetLangCode}): ${item.translatedText}")
-        }
-    }
-}
-*/
+
 
 
 
